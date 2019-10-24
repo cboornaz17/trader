@@ -26,8 +26,6 @@ class Td_API:
         @param endDate the last date to request data for -- not needed if period is provided
         @param startDate the first date to request data for
         """
-
-        
         url = "https://api.tdameritrade.com/v1/marketdata/{}/pricehistory?periodType={}".format(ticker, periodType)
         url += "&frequencyType={}&frequency={}".format(frequencyType, frequency)
 

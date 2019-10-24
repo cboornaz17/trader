@@ -1,4 +1,6 @@
 import math
+import numpy as np 
+import random 
 
 # Return the value of the Gaussian probability function with mean 0.0
 # and standard deviation 1.0 at the given x value.
@@ -44,7 +46,46 @@ def callPrice(s, x, r, sigma, t):
     # s = St
     # PV 
 
+
+def getVolatility(prices):
+    """
+    takes in a list of prices and calculates the volatility of the stock on the last provided day
+    """
+    n = len(prices)
+    avg = np.average(prices)
+
+    variance = np.sum((np.abs(n - avg) ) ** 2) / n
+    print("variance: {}".format(variance))
+
+    daily_vol = math.sqrt(variance)
+    print("daily volatility: {}".format(daily_vol))
+
+
+    return np.average(prices)
+
+
+def getRandomPrices(steps, startPrice, changeRange):
+    """
+    Returns an array of random prices 
+    """
+
+    ret = [startPrice]
+    curr = startPrice
+    for i in range(steps):
+        change = random.randint(-changeRange, changeRange)
+        curr += change 
+        ret.append(curr)
+
+    return ret
+
+
 if __name__ == "__main__":
 
     # this is wrong i think
-    print(callPrice(299.87, 302, .12, .11, (12 / 365)))
+    #print(callPrice(299.01, 302, .12, .1392, (9 / 365)))
+
+    prices = getRandomPrices(50, 300, 5)
+    print(prices[-1])
+
+    v = getVolatility(prices)
+    print(v)
