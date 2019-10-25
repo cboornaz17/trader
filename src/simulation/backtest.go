@@ -1,8 +1,7 @@
-package main
+package simulation
 
 import (
 	"fmt"
-	"DBClasses"
 )
 
 func main() {

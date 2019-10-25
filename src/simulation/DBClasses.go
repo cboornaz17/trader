@@ -1,4 +1,4 @@
-package main
+package simulation
 
 import (
 )
@@ -23,6 +23,7 @@ type Indicators struct {
 	EMAs map[int]float32
 }
 
+// candle.rsi() returns rsi calculation
 func (c *Candle) rsi() float32 {
     return 100.0 - 100.0 / (1 + c.Indicators.AvgUp / c.Indicators.AvgDown)
 }
@@ -46,7 +47,7 @@ type Test struct {
 type Symbol struct {
 	Symbol string
 	Trading bool
-	Price_levels [] PriceLevel
+	PriceLevels [] PriceLevel
 }
 
 /* Option encapsulates a stock option, with methods to calculate
