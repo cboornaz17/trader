@@ -1,0 +1,50 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+data <- data.frame(i = rep(1:21), d = c(45.15, 46.26, 46.5, 46.23, 46.08, 46.03, 46.83, 47.69,
+                        47.54, 49.25, 49.23, 48.2, 47.57, 47.61, 48.08, 47.21,
+                        46.76, 46.68, 46.21, 47.47, 47.98), fiveday = NA, tenday = NA, macd = NA, macdslope = NA, macdcurve = NA)
+```
+
+```{r}
+
+data$d[(i-4):i]
+
+for (i in 5:length(data$i)) {
+  sum = sum(data$d[(i-4):i])
+  data$fiveday[i] <- sum / 5
+}
+
+for (i in 10:length(data$i)) {
+  sum = sum(data$d[(i-9):i])
+  data$tenday[i] <- sum / 10
+}
+
+data$macd <- data$tenday - data$fiveday
+
+plot(data$i, data$macd)
+plot(data$d, type = "l")
+# lines(data$fiveday)
+# lines(data$tenday)
+
+# slope of macd
+for (i in 10:length(data$i)) {
+  data$macdslope[i] <- data$macd[i] - data$macd[i - 1]
+}
+
+for (i in 10:length(data$i)) {
+  data$macdcurve[i] <- data$macdslope[i] - data$macdslope[i - 1]
+}
+
+lines(data$macdcurve + 47, col = "blue")
+lines(data$macdslope + 47, col = "red")
+abline(h = 47)
+```
+
