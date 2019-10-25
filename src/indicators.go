@@ -45,7 +45,7 @@ AvgDt = 1/14 * Dt + 13/14 * AvgDt-1
 */
 
 // need to calculate standard rsi for the 14th index candle
-func fullrsi(candles []Candle) {
+func fullRS(candles []Candle) {
   var avgu float32
   var avgd float32
 
@@ -71,13 +71,13 @@ func fullrsi(candles []Candle) {
   // be careful of the edge case 14 candles of consecutive up or down
   if avgu > 0 & avgd > 0 & len(candles) > 15 {
     // pass remaining candles to the smoothing rsi calculation
-    smoothrsi(candles[14:len(candles)])
+    smoothRS(candles[14:len(candles)])
   }
 }
 
 // be careful of the edge case 14 candles of consecutive up or down
 // rsi can be "backcalculated" from prev AvgUp, prev AvgDown, prev price, current price
-func smoothrsi(candles []Candle) {
+func smoothRS(candles []Candle) {
   var change float32
   var price float32
 
@@ -104,4 +104,49 @@ func smoothrsi(candles []Candle) {
     candles[i].Indicators.AvgUp = avgu
     candles[i].Indicators.AvgDown = avgd
   }
+}
+
+/* recursive version of smoothRS
+func recurseRS(candles []Candle, i, avgu, avgd) {
+  change = candles[i].Close - candles[i-1].Close
+
+  // could do candles[i].Indicators.AvgDown as pointer but idk how to or why
+
+  if change > 0 {
+    candles[i].Indicators.AvgUp = (13.0 * avgu + change) / 14.0
+    candles[i].Indicators.AvgDown = avgd = (13.0 * avgd) / 14.0
+  } else if change < 0 {
+    candles[i].Indicators.AvgUp = (13.0 * avgu) / 14.0
+    candles[i].Indicators.AvgDown = avgd = (13.0 * avgd - change) / 14.0
+  }
+
+  recurseRS(candles, i + 1, candles[i].Indicators.AvgUp, candles[i].Indicators.AvgDown)
+}
+*/
+
+// iterate to the last desired interval, calculating the SMA (also first EMA)
+func fullEMA(candles []Candle, intervals []int) {
+  for i := 0; i < max(intervals)
+}
+
+// check before this that candles[0] has EMAs calculated for all desired intervals
+func backEMA(candles []Candle, intervals []int) {
+  var interval int
+  var last_sma float32
+
+  last_emas[interval] = candles[0].Indicators.EMAs[interval]
+
+  for i := 1; i < len(candles); i++ {
+    for j := 0; j < len(intervals); j++ {
+      interval = intervals[j]
+      smoothing = 2 / (interval + 1)
+
+
+
+      last_ema = candles[i].Close * smoothing + last_ema * (1 - smoothing)
+
+      candles[i].Indicators.EMAs[interval] = last_ema
+    }
+  }
+
 }

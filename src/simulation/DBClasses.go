@@ -19,7 +19,8 @@ type Indicators struct {
   // rs is AvgUp/AvgDown
 	AvgUp float32
 	AvgDown float32
-	MAs map[string]float32
+	SMAs map[int]float32
+	EMAs map[int]float32
 }
 
 func (c *Candle) rsi() float32 {
@@ -40,7 +41,7 @@ type Test struct {
 	Candles [] Candle
 }
 
-// 
+//
 
 type Symbol struct {
 	Symbol string
