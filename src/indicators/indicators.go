@@ -2,6 +2,7 @@ package main
 
 import(. "trader/src/simulation")
 import("fmt")
+import("strconv")
 
 func main() {
   // closing prices of the last 15 candles
@@ -13,8 +14,8 @@ func main() {
 
   for i := 0; i < len(prices); i++ {
     candles[i] = Candle{Close : prices[i]}
-    candles[i].Indicators.SMAs = make(map[int]float32)
-    candles[i].Indicators.EMAs = make(map[int]float32)
+    candles[i].Indicators.SMAs = make(map[string]float32)
+    candles[i].Indicators.EMAs = make(map[string]float32)
   }
 
 
@@ -88,7 +89,8 @@ func FullIndicators(candles []Candle, smaIntervals []int, emaIntervals []int) {
       // c = 4 is 5th candle.. interval 4 requires c = 4
       if c == emaIntervals[e] {
         // pass 0 to c
-        if candles[c-1].Indicators.SMAs[emaIntervals[e]] != 0.0 {
+        fmt.Println(strconv.Itoa(emaIntervals[e]))
+        if candles[c-1].Indicators.SMAs[strconv.Itoa(emaIntervals[e])] != 0.0 {
           SetEMA(candles[(c-1):(c+1)], emaIntervals[e])
         } else {
           SetEMA(candles[0:c+1], emaIntervals[e])
@@ -181,7 +183,7 @@ func SetAvgGL(curCandle *Candle, prevCandle *Candle) {
 
 // set the last candle's sma to the average of the list of candles
 func SetSMA(candles []Candle) {
-    candles[len(candles) - 1].Indicators.SMAs[len(candles)] = GetAvg(candles)
+    candles[len(candles) - 1].Indicators.SMAs[strconv.Itoa(len(candles))] = GetAvg(candles)
 }
 
 // set the last candles ema to the calculated ema based on the array
@@ -193,11 +195,11 @@ func SetEMA(candles []Candle, interval int) {
   if len(candles) == 2 && interval != 2 {
     // the array contains the current and the previous candle
     // the previous candle has either the previous ema or the first sma at the interval
-    baseMA = candles[0].Indicators.EMAs[interval]
+    baseMA = candles[0].Indicators.EMAs[strconv.Itoa(interval)]
     //prefer the ema
     if baseMA == 0.0 {
       // the first ema made from previous sma
-      baseMA = candles[0].Indicators.SMAs[interval]
+      baseMA = candles[0].Indicators.SMAs[strconv.Itoa(interval)]
     }
   } else {
     // getting passed more than 2 candles means that the sma should be used
@@ -206,7 +208,7 @@ func SetEMA(candles []Candle, interval int) {
   }
   // calculate ema from whatever ma is selected
   ema = GetEMA(candles[1], baseMA, interval)
-  candles[len(candles)-1].Indicators.EMAs[interval] = ema
+  candles[len(candles)-1].Indicators.EMAs[strconv.Itoa(interval)] = ema
 }
 
 // calculate the average price of the array
