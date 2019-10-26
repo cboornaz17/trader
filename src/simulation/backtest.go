@@ -1,4 +1,4 @@
-package simulation
+package main
 
 import (
 	"fmt"
@@ -10,28 +10,37 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello from go")
 
-	fmt.Println("Using db classes")
+	symbol := "Testing"
 
+	// make sample candle
 	c := Candle {
 		12.2,
 		12.1,
 		5.2,
 		10.1,
 		1000,
-		"Testing",
-		bson.A{},
+		symbol,
+		Indicators{},
 	}
-
+	
 	fmt.Println(c)
 
+	// Initialize MongoWrapper object
 	mw := Init()
 
-	fmt.Println("Got db: ", mw)
-
+	// Insert candle
 	mw.insertCandle(c)
 
+	// Filter to search for candles on
+	filter := bson.D{{"Symbol", symbol}} 
+
+	// Get candle
+	new_c := mw.getCandle(filter)
+
+	fmt.Println("Got candle", new_c)
+
+	// Close db connection
 	err := mw.Cleanup()
 
 	if err != nil {
