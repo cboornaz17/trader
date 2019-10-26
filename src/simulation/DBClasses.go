@@ -1,4 +1,4 @@
-package main
+package simulation
 
 import (
 	"fmt"
@@ -11,34 +11,54 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Candle struct {
-	Open float32;
-	Close float32;
-	High float32;
-	Low float32;
-	Volume int;
-	Symbol string;
-	Indicators bson.A;
-}
-
-
-
 type Test struct {
 	Length int;
 	Candles [] Candle;
 }
 
+// candles with cointained class, indicators
+type Candle struct {
+	Open float32
+	Close float32
+	High float32
+	Low float32
+	Volume int
+	Symbol string
+	Indicators Indicators
+}
+
+type Indicators struct {
+  	// rs is AvgUp/AvgDown
+	AvgUp float32
+	AvgDown float32
+	SMAs map[int]float32
+	EMAs map[int]float32
+}
+
+// candle.rsi() returns rsi calculation
+func (c *Candle) rsi() float32 {
+    return 100.0 - 100.0 / (1 + c.Indicators.AvgUp / c.Indicators.AvgDown)
+}
+
+// price levels measured with tests
 type PriceLevel struct {
 	Price float32;
 	Tests [] Test;
+	Price float32
+	// probably should point to tests not sure how Mongo/Go handle this
+	Tests [] Test
 }
+
 type Symbol struct {
 	Symbol string;
 	Trading bool;
 	Price_levels [] PriceLevel;
+	Symbol string
+	Trading bool
+	PriceLevels [] PriceLevel
 }
 
-/* Option encapsulates a stock option, with methods to calculate 
+/* Option encapsulates a stock option, with methods to calculate
     its price */
 type Option struct {
 	Symbol string;
@@ -73,8 +93,14 @@ func (mw MongoWrapper) insertCandle(c Candle) {
 
 func (mw MongoWrapper) getCandle(filter bson.D{}) Candle {
 	
+	Symbol string
+	Expiry int
+	Strike int
 }
 
+func (mw MongoWrapper) Cleanup() error {
+	return mw.client.Disconnect(context.TODO())
+}
 
 func Init() MongoWrapper {
 	fmt.Println("Init")
@@ -104,8 +130,3 @@ func Init() MongoWrapper {
 	
 	return mw
 }
-
-func (mw MongoWrapper) Cleanup() error {
-	return mw.client.Disconnect(context.TODO())
-}
-
