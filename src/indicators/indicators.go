@@ -19,9 +19,10 @@ func main() {
 
 
 
-  intervals := []int{5, 10}
+  intervals1 := []int{5, 10}
+  intervals2 := []int{4, 10}
 
-  FullIndicators(candles[:], intervals, intervals)
+  FullIndicators(candles[:], intervals1, intervals2)
 }
 
 /*
@@ -42,15 +43,13 @@ need i-15... candles
 /*
 WILDER'S RSI
 
-If we tracked the average upchange and downchange we're in and no loops
+If we tracked the average upchange and downchange we're in and no extra loops
 
 use the standard 14 candles for the first RS (on candle index 14)
 AvgUt = 1/14 * Ut + 13/14 * AvgUt-1
 AvgDt = 1/14 * Dt + 13/14 * AvgDt-1
 
 */
-
-// need to calculate standard rsi for the 14th index candle
 
 // this should be passed a candles list with no indicators
 func FullIndicators(candles []Candle, smaIntervals []int, emaIntervals []int) {
@@ -60,9 +59,10 @@ func FullIndicators(candles []Candle, smaIntervals []int, emaIntervals []int) {
   // loop through candles
   for c := 1; c < len(candles); c++ {
     // rsi calculation control
+    UpdateAvgGL(candles[c].Close, candles[c-1].Close, &gains, &losses)
     if c < 14 {
       // need a function to sum gains and losses
-      UpdateAvgGL(candles[c].Close, candles[c-1].Close, &gains, &losses)
+
     } else if c == 14 {
       candles[c].Indicators.AvgUp = gains / 14.0
       candles[c].Indicators.AvgDown = losses / 14.0
@@ -78,7 +78,7 @@ func FullIndicators(candles []Candle, smaIntervals []int, emaIntervals []int) {
       if c + 1 >= smaIntervals[s] {
         // pass in the slice of candles with to be used in the calculations
         // interval is 4, c is 4 need c-interval+1 to c
-        SetSMA(candles[(c-smaIntervals[s]+1):c])
+        SetSMA(candles[(c-smaIntervals[s]+1):(c+1)])
       }
     }
 
@@ -88,17 +88,18 @@ func FullIndicators(candles []Candle, smaIntervals []int, emaIntervals []int) {
       // c = 4 is 5th candle.. interval 4 requires c = 4
       if c == emaIntervals[e] {
         // pass 0 to c
-        if candles[c-1].Indicators.SMAs[emaIntervals[e]] != 0 {
-          SetEMA(candles[(c-1):c], emaIntervals[e])
+        if candles[c-1].Indicators.SMAs[emaIntervals[e]] != 0.0 {
+          SetEMA(candles[(c-1):(c+1)], emaIntervals[e])
         } else {
-          SetEMA(candles[0:c], emaIntervals[e])
+          SetEMA(candles[0:c+1], emaIntervals[e])
         }
 
       } else if c >= emaIntervals[e] {
         // pass c-1 to c
-        SetEMA(candles[(c-1):c], emaIntervals[e])
+        SetEMA(candles[(c-1):c+1], emaIntervals[e])
       }
     }
+    fmt.Println(candles[c])
   }
 }
 
@@ -178,33 +179,38 @@ func SetAvgGL(curCandle *Candle, prevCandle *Candle) {
   curCandle.Indicators.AvgDown = avgd
 }
 
+// set the last candle's sma to the average of the list of candles
 func SetSMA(candles []Candle) {
-    candles[len(candles) - 1].Indicators.SMAs[len(candles)] = GetSMA(candles)
-    fmt.Println(candles[len(candles) - 1])
+    candles[len(candles) - 1].Indicators.SMAs[len(candles)] = GetAvg(candles)
 }
 
+// set the last candles ema to the calculated ema based on the array
 func SetEMA(candles []Candle, interval int) {
   var ema float32
   var baseMA float32
 
-  if len(candles) == 2 {
-    //doesn't have to be close
+  // setting baseMA based on what's in candles
+  if len(candles) == 2 && interval != 2 {
+    // the array contains the current and the previous candle
+    // the previous candle has either the previous ema or the first sma at the interval
     baseMA = candles[0].Indicators.EMAs[interval]
+    //prefer the ema
     if baseMA == 0.0 {
+      // the first ema made from previous sma
       baseMA = candles[0].Indicators.SMAs[interval]
     }
   } else {
-    // interval 5, candle 5 can
-    // assert(candles[0:interval-1] == interval - 1)
-    baseMA = GetSMA(candles[0:interval-1])
+    // getting passed more than 2 candles means that the sma should be used
+    // there is no sma calculated for this interval
+    baseMA = GetAvg(candles[0:interval-1])
   }
+  // calculate ema from whatever ma is selected
   ema = GetEMA(candles[1], baseMA, interval)
   candles[len(candles)-1].Indicators.EMAs[interval] = ema
 }
 
-// meant to be used for one off sma calculations (ie. when ema starts up)
-// this function takes a set length of candles and calculates the sma of the last one
-func GetSMA(candles []Candle) float32 {
+// calculate the average price of the array
+func GetAvg(candles []Candle) float32 {
   sum := float32(0)
 
   for i := 0; i < len(candles); i++ {
@@ -214,7 +220,7 @@ func GetSMA(candles []Candle) float32 {
   return sum / float32(len(candles))
 }
 
-// price doesn't have to be close
+// apply the smoothing constant based on the interval
 func GetEMA(candle Candle, baseMA float32, interval int) float32 {
   smoothing := 2.0 / (float32(interval) + 1.0)
 
