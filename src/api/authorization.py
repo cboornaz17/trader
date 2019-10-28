@@ -10,13 +10,8 @@ def get_config_dict(config_filename):
     """
     Parses the config file into a dictionary
     """
-    f = open(config_filename)
-    ret = dict()
-    for line in f.readlines():
-        arr = line.strip().split('=', 1)
-        ret[arr[0]] = arr[1]
-
-    return ret
+    with open(config_filename) as file:
+        return { entry[0]:entry[1] for entry in (line.strip().split('=',1) for line in file.readlines()) }
 
 def get_access_token(client_id, refresh_token):
     """
